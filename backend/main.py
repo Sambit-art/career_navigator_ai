@@ -7,11 +7,11 @@ from routes.users.user_routes import router as users_router
 from routes.common.common_routes import router as common_router
 from routes.career.interview_routes import router as interview_router
 from routes.career.guidance_routes import router as guidance_router
-from database import create_db_and_tables
+from database import init_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()
+    await init_db()
     yield
 
 app = FastAPI(lifespan=lifespan)

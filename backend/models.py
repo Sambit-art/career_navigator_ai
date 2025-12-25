@@ -1,18 +1,22 @@
 from typing import Optional, List
-from sqlmodel import Field, SQLModel, JSON, Column
-from pydantic import validator
+from beanie import Document, Indexed
+from pydantic import BaseModel, Field, validator
 import re
 from datetime import datetime
+from bson import ObjectId
 
 # Shared properties
-class UserBase(SQLModel):
-    email: str = Field(unique=True, index=True)
+class UserBase(BaseModel):
+    email: str
     name: Optional[str] = None
 
 # Database model
-class User(UserBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class User(Document, UserBase):
+    email: Indexed(str, unique=True) # type: ignore
     hashed_password: str
+    
+    class Settings:
+        name = "users"
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
@@ -30,67 +34,71 @@ class UserCreate(UserBase):
 
 # Properties to return via API
 class UserRead(UserBase):
-    id: int
+    id: str
+
+    @validator("id", pre=True, always=True)
+    def parse_id(cls, v):
+        return str(v)
 
 # Properties to receive via API on update
-class UserUpdate(SQLModel):
+class UserUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
 
-class PasswordChange(SQLModel):
+class PasswordChange(BaseModel):
     old_password: str
     new_password: str
 
 # Token schemas
-class Token(SQLModel):
+class Token(BaseModel):
     access_token: str
     token_type: str
 
-class TokenData(SQLModel):
+class TokenData(BaseModel):
     email: Optional[str] = None
 
 # Resume Analysis Models
-class ResumeAnalysisBase(SQLModel):
+class ResumeAnalysis(Document):
+    user_id: Indexed(str) # type: ignore
     filename: str
-    analysis_data: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    analysis_data: dict
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-class ResumeAnalysis(ResumeAnalysisBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
-
-class ResumeAnalysisRead(ResumeAnalysisBase):
-    id: int
-    user_id: int
+    class Settings:
+        name = "resume_analyses"
 
 # Interview Models
-class InterviewSession(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
-    job_role: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    is_active: bool = Field(default=True)
-
-class InterviewMessage(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    session_id: int = Field(foreign_key="interviewsession.id")
+class InterviewMessage(BaseModel):
     sender: str  # "user" or "ai"
     content: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
-# Career Roadmap Models
-class UserRoadmap(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
-    role: str
+class InterviewSession(Document):
+    user_id: Indexed(str) # type: ignore
+    job_role: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = Field(default=True)
+    messages: List[InterviewMessage] = []
 
-class UserRoadmapStep(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    roadmap_id: int = Field(foreign_key="userroadmap.id")
+    class Settings:
+        name = "interview_sessions"
+
+# Career Roadmap Models
+class UserRoadmapStep(BaseModel):
+    id: str = Field(default_factory=lambda: str(ObjectId()))
     title: str
     description: str
     estimated_duration: str
-    status: str = Field(default="todo") # todo, in_progress, done
+    status: str = "todo" # todo, in_progress, done
     order_index: int
+
+class UserRoadmap(Document):
+    user_id: Indexed(str) # type: ignore
+    role: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    is_active: bool = Field(default=True)
+    steps: List[UserRoadmapStep] = []
+
+    class Settings:
+        name = "user_roadmaps"
+
