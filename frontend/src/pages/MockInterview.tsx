@@ -154,7 +154,7 @@ const MockInterview: React.FC = () => {
                 className="fw-bold mb-3"
                 style={{ color: "var(--color-text)" }}
               >
-                AI Mock Interview Configurator
+                AI Mock Interviewer
               </h2>
 
               {checkingHistory ? (

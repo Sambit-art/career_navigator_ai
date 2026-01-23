@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
                   to="/career-guidance"
                   className="btn btn-outline-success rounded-pill mt-3 stretched-link"
                 >
-                  Coming Soon
+                  Use Tool
                 </Link>
               </div>
             </div>
@@ -77,7 +77,7 @@ const Dashboard: React.FC = () => {
                   to="/mock-interview"
                   className="btn btn-outline-warning rounded-pill mt-3 stretched-link"
                 >
-                  Coming Soon
+                  Use Tool
                 </Link>
               </div>
             </div>
