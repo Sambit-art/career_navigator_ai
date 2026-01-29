@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<{ disabled?: boolean; restrictedMode?: boolean }> = ({
+  disabled,
+  restrictedMode,
+}) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,13 +26,27 @@ const Navbar: React.FC = () => {
     navigate("/login");
   };
 
+  const handleDisabledClick = (e: React.MouseEvent) => {
+    if (disabled) {
+      e.preventDefault();
+    }
+  };
+
+  const handleRestrictedClick = (e: React.MouseEvent) => {
+    if (restrictedMode) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <aside className={`sidebar ${isSidebarCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
         <div className="logo">
-          <span className="logo-icon">📄</span>
+          <div className="logo-icon-wrapper">
+            <span className="logo-icon">🚀</span>
+          </div>
           <span className={`logo-text ${isSidebarCollapsed ? "hidden" : ""}`}>
-            Career Navigator
+            <span className="logo-title">Career Navigator</span>
           </span>
         </div>
         <button
@@ -39,7 +56,7 @@ const Navbar: React.FC = () => {
             isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
           }
         >
-          {isSidebarCollapsed ? "→" : "←"}
+          <i className={`bi bi-chevron-${isSidebarCollapsed ? "right" : "left"}`}></i>
         </button>
       </div>
 
@@ -49,11 +66,21 @@ const Navbar: React.FC = () => {
             <li className="nav-item">
               <a
                 href="/dashboard"
+                onClick={handleDisabledClick}
                 className={`nav-link ${
                   isActiveLink("/dashboard") ? "active" : ""
-                }`}
+                } ${disabled ? "disabled-link" : ""}`}
+                style={
+                  disabled
+                    ? { opacity: 0.5, cursor: "not-allowed", pointerEvents: "none" }
+                    : {}
+                }
               >
-                <span className="nav-icon">📊</span>
+                <div className="nav-icon-wrapper">
+                  <span className="nav-icon">
+                    <i className="bi bi-speedometer2"></i>
+                  </span>
+                </div>
                 <span
                   className={`nav-text ${isSidebarCollapsed ? "hidden" : ""}`}
                 >
@@ -64,11 +91,21 @@ const Navbar: React.FC = () => {
             <li className="nav-item">
               <a
                 href="/resume-analysis"
+                onClick={handleDisabledClick}
                 className={`nav-link ${
                   isActiveLink("/resume-analysis") ? "active" : ""
-                }`}
+                } ${disabled ? "disabled-link" : ""}`}
+                style={
+                  disabled
+                    ? { opacity: 0.5, cursor: "not-allowed", pointerEvents: "none" }
+                    : {}
+                }
               >
-                <span className="nav-icon">📋</span>
+                <div className="nav-icon-wrapper">
+                  <span className="nav-icon">
+                    <i className="bi bi-file-earmark-text"></i>
+                  </span>
+                </div>
                 <span
                   className={`nav-text ${isSidebarCollapsed ? "hidden" : ""}`}
                 >
@@ -79,11 +116,24 @@ const Navbar: React.FC = () => {
             <li className="nav-item">
               <a
                 href="/mock-interview"
+                onClick={(e) => {
+                  handleDisabledClick(e);
+                  handleRestrictedClick(e);
+                }}
                 className={`nav-link ${
                   isActiveLink("/mock-interview") ? "active" : ""
-                }`}
+                } ${disabled || restrictedMode ? "disabled-link" : ""}`}
+                style={
+                  disabled || restrictedMode
+                    ? { opacity: 0.5, cursor: "not-allowed", pointerEvents: "none" }
+                    : {}
+                }
               >
-                <span className="nav-icon">🎤</span>
+                <div className="nav-icon-wrapper">
+                  <span className="nav-icon">
+                    <i className="bi bi-mic"></i>
+                  </span>
+                </div>
                 <span
                   className={`nav-text ${isSidebarCollapsed ? "hidden" : ""}`}
                 >
@@ -94,11 +144,24 @@ const Navbar: React.FC = () => {
             <li className="nav-item">
               <a
                 href="/career-guidance"
+                onClick={(e) => {
+                  handleDisabledClick(e);
+                  handleRestrictedClick(e);
+                }}
                 className={`nav-link ${
                   isActiveLink("/career-guidance") ? "active" : ""
-                }`}
+                } ${disabled || restrictedMode ? "disabled-link" : ""}`}
+                style={
+                  disabled || restrictedMode
+                    ? { opacity: 0.5, cursor: "not-allowed", pointerEvents: "none" }
+                    : {}
+                }
               >
-                <span className="nav-icon">🧭</span>
+                <div className="nav-icon-wrapper">
+                  <span className="nav-icon">
+                    <i className="bi bi-compass"></i>
+                  </span>
+                </div>
                 <span
                   className={`nav-text ${isSidebarCollapsed ? "hidden" : ""}`}
                 >
@@ -109,15 +172,20 @@ const Navbar: React.FC = () => {
           </ul>
         </div>
 
-        <div className="nav-menu-bottom mt-auto">
+        <div className="nav-menu-bottom">
+          <div className="nav-divider"></div>
           <ul className="nav-menu-list">
             <li className="nav-item">
               <button
                 onClick={handleLogout}
-                className="nav-link w-100 text-start border-0 bg-transparent"
+                className="nav-link text-start border-0 bg-transparent"
                 style={{ cursor: "pointer" }}
               >
-                <span className="nav-icon">🚪</span>
+                <div className="nav-icon-wrapper">
+                  <span className="nav-icon">
+                    <i className="bi bi-box-arrow-right"></i>
+                  </span>
+                </div>
                 <span
                   className={`nav-text ${isSidebarCollapsed ? "hidden" : ""}`}
                 >

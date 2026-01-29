@@ -69,10 +69,14 @@ const ResumeAnalysis: React.FC = () => {
   };
 
   return (
-    <Layout title="Resume Analysis">
+    <Layout title="Resume Analysis" disableNav={!file && !result}>
       <div className="container" style={{ maxWidth: "1000px" }}>
         <div className="d-flex justify-content-end align-items-center mb-4">
-          <Link to="/history" className="btn btn-outline-primary rounded-pill">
+          <Link 
+            to="/history" 
+            className={`btn btn-outline-primary rounded-pill ${(!file && !result) ? 'disabled' : ''}`}
+            style={(!file && !result) ? { pointerEvents: 'none', opacity: 0.6 } : {}}
+          >
             <i className="bi bi-clock-history me-1"></i> View History
           </Link>
         </div>

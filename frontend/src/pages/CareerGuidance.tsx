@@ -565,7 +565,7 @@ const CareerGuidance: React.FC = () => {
             <Modal.Header
               closeButton
               closeVariant={
-                document.body.classList.contains("dark") ? "white" : undefined
+                document.body.classList.contains("dark") ? "white" : "white"
               }
             >
               <Modal.Title className="fw-bold">{detailTitle}</Modal.Title>
@@ -614,7 +614,7 @@ const CareerGuidance: React.FC = () => {
             <Modal.Header
               closeButton
               closeVariant={
-                document.body.classList.contains("dark") ? "white" : undefined
+                document.body.classList.contains("dark") ? "white" : "white"
               }
             >
               <Modal.Title className="fw-bold">Quiz: {detailTitle}</Modal.Title>
