@@ -23,6 +23,10 @@ const MockInterview: React.FC = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [showVoiceConfirm, setShowVoiceConfirm] = useState(false);
+  const [voiceText, setVoiceText] = useState("");
+  const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -132,6 +136,67 @@ const MockInterview: React.FC = () => {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  // --- Voice Input Logic ---
+
+  const startRecording = () => {
+    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+      alert("Voice input is not supported in this browser.");
+      return;
+    }
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setVoiceText(transcript);
+      setShowVoiceConfirm(true);
+      setIsRecording(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsRecording(false);
+      alert("Error recognizing voice. Please try again.");
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const confirmVoiceInput = () => {
+    if (voiceText) {
+      setInputMessage((prev) => (prev ? prev + " " + voiceText : voiceText));
+    }
+    setShowVoiceConfirm(false);
+    setVoiceText("");
+  };
+
+  const cancelVoiceInput = () => {
+    setShowVoiceConfirm(false);
+    setVoiceText("");
   };
 
   if (!token) {
@@ -352,6 +417,51 @@ const MockInterview: React.FC = () => {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Voice Confirmation Modal */}
+            {showVoiceConfirm && (
+              <div
+                className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+                style={{
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  zIndex: 1050,
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                <div
+                  className="card shadow-lg border-0 rounded-4"
+                  style={{
+                    width: "400px",
+                    backgroundColor: "var(--color-card-bg)",
+                    color: "var(--color-text)",
+                  }}
+                >
+                  <div className="card-body p-4 text-center">
+                    <div className="mb-3">
+                      <i className="bi bi-mic-fill fs-1 text-primary"></i>
+                    </div>
+                    <h5 className="fw-bold mb-3">Confirm Voice Input</h5>
+                    <p className="mb-4 text-muted fst-italic">
+                      "{voiceText}"
+                    </p>
+                    <div className="d-flex justify-content-center gap-2">
+                      <button
+                        className="btn btn-outline-secondary rounded-pill px-4"
+                        onClick={cancelVoiceInput}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn btn-primary rounded-pill px-4"
+                        onClick={confirmVoiceInput}
+                      >
+                        Use Text
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div
               className="card-footer p-3 border-top"
               style={{
@@ -360,14 +470,29 @@ const MockInterview: React.FC = () => {
               }}
             >
               <div className="input-group">
+                <button
+                  className={`btn ${
+                    isRecording ? "btn-danger" : "btn-outline-primary"
+                  } px-3`}
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={loading}
+                  type="button"
+                  title={isRecording ? "Stop Recording" : "Start Voice Input"}
+                >
+                  {isRecording ? (
+                    <span className="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                  ) : (
+                    <i className="bi bi-mic-fill"></i>
+                  )}
+                </button>
                 <input
                   type="text"
                   className="form-control form-control-lg border-0"
-                  placeholder="Type your answer here..."
+                  placeholder={isRecording ? "Listening..." : "Type your answer here..."}
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={handleKeyPress}
-                  disabled={loading}
+                  disabled={loading || isRecording}
                   style={{
                     background: "var(--color-background)",
                     color: "var(--color-text)",
